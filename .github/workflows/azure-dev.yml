@@ -35,6 +35,11 @@ jobs:
             --tenant-id "$Env:AZURE_TENANT_ID"
         shell: pwsh
 
+      # Setup .NET, provision has a dependency on .NET
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.x'  # Adjust as needed
 
       - name: Provision Infrastructure
         run: azd provision --no-prompt -C AspireApp68.AppHost
