@@ -1,0 +1,65 @@
+name: Build and Publish
+
+on:
+  push:
+    branches:
+      - main  # Trigger on main branch commits
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout code
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # Step 2: Setup .NET
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '9.x'  # Adjust as needed
+
+     # Step 3: Restore dependencies
+    - name: Restore .NET Dependencies
+      run: dotnet restore
+
+    # Step 4: Build the solution
+    - name: Build .NET Solution
+      run: dotnet build --configuration Release --no-restore
+
+    # Step 5: Run tests (optional, can be skipped if not needed)
+    - name: Run Tests
+      run: dotnet test --configuration Release --no-build
+
+    # Login to Azure
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # Login to Azure Container Registry
+    - name: Login to Azure Container Registry
+      run: az acr login --name ${{ secrets.ACR_NAME }}
+
+    # Build and Push Container Image
+    - name: Build and Push Container
+      env:
+        IMAGE_TAG: ${{ github.run_number }}
+      run: |
+        echo "Using IMAGE_TAG=${IMAGE_TAG}"
+        dotnet publish \
+          -c Release \
+          --os linux \
+          --arch x64 \
+          -p:PublishProfile=DefaultContainer \
+          -p:ContainerRegistry=${{ secrets.ACR_NAME }}.azurecr.io \
+          -p:ContainerImageName=my-api \
+          -p:ContainerImageTag=${IMAGE_TAG}
+
+    # Step 6: Output image details for downstream pipeline
+    - name: Set Output
+      id: image_details
+      run: echo "image=my-api:${{ github.run_number }}" >> $GITHUB_ENV
+      outputs:
+        image: my-api:${{ github.run_number }}
