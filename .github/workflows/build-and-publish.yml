@@ -57,9 +57,3 @@ jobs:
           -p:ContainerImageName=my-api \
           -p:ContainerImageTag=${IMAGE_TAG}
 
-    # Step 6: Output image details for downstream pipeline
-    - name: Set Output
-      id: image_details
-      run: echo "image=my-api:${{ github.run_number }}" >> $GITHUB_ENV
-      outputs:
-        image: my-api:${{ github.run_number }}
