@@ -1,4 +1,4 @@
-name: Build and Publish
+name: Build and Test
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main  # Trigger on main branch commits
 
 jobs:
-  build-and-publish:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
